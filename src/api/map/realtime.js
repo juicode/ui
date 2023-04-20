@@ -42,3 +42,20 @@ export function delRealtime(id) {
     method: 'delete'
   })
 }
+
+
+export function getAddress() {
+  return request({
+    url: '/map/realtime/address',
+    method: 'get'
+  })
+}
+
+export function forAddress(data) {
+  return request({
+    url: '/map/realtime/forAddress',
+    method: 'post',
+    data: data
+  })
+}
+

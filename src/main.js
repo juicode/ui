@@ -2,6 +2,7 @@ import Vue from 'vue'
 
 import Cookies from 'js-cookie'
 
+import BaiduMap from 'vue-baidu-map'
 import Element from 'element-ui'
 import './assets/styles/element-variables.scss'
 
@@ -74,6 +75,9 @@ DictData.install()
 
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium' // set element-ui default size
+})
+Vue.use(BaiduMap,{
+  ak: 'BCSBhGb3jnN39TzGmUALulHeo59Awsuq'
 })
 
 Vue.config.productionTip = false

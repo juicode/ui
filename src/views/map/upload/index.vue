@@ -1,22 +1,22 @@
 <template>
     <div class="app-container">
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="经度" prop="longitude">
-          <el-input
-            v-model="queryParams.longitude"
-            placeholder="请输入经度"
-            clearable
-            @keyup.enter.native="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="纬度" prop="latitude">
-          <el-input
-            v-model="queryParams.latitude"
-            placeholder="请输入纬度"
-            clearable
-            @keyup.enter.native="handleQuery"
-          />
-        </el-form-item>
+<!--        <el-form-item label="经度" prop="longitude">-->
+<!--          <el-input-->
+<!--            v-model="queryParams.longitude"-->
+<!--            placeholder="请输入经度"-->
+<!--            clearable-->
+<!--            @keyup.enter.native="handleQuery"-->
+<!--          />-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="纬度" prop="latitude">-->
+<!--          <el-input-->
+<!--            v-model="queryParams.latitude"-->
+<!--            placeholder="请输入纬度"-->
+<!--            clearable-->
+<!--            @keyup.enter.native="handleQuery"-->
+<!--          />-->
+<!--        </el-form-item>-->
         <el-form-item label="地址" prop="address">
           <el-input
             v-model="queryParams.address"
@@ -25,10 +25,10 @@
             @keyup.enter.native="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="城市" prop="city">
+        <el-form-item label="事故" prop="city">
           <el-input
             v-model="queryParams.city"
-            placeholder="请输入城市"
+            placeholder="请输入详情"
             clearable
             @keyup.enter.native="handleQuery"
           />
@@ -82,17 +82,17 @@
             v-hasPermi="['map:realtime:export']"
           >导出</el-button>
         </el-col>
-        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+<!--        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>-->
       </el-row>
 
       <el-table v-loading="loading" :data="realtimeList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="	主键，唯一标识" align="center" prop="id" />
+        <el-table-column label="编号" align="center" prop="id" />
         <el-table-column label="经度" align="center" prop="longitude" />
         <el-table-column label="纬度" align="center" prop="latitude" />
         <el-table-column label="地址" align="center" prop="address" />
-        <el-table-column label="城市" align="center" prop="city" />
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <el-table-column label="事件" align="center" prop="city" />
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" v-if="this.$auth.hasRole('palceAdmin')">
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -132,12 +132,12 @@
           <el-form-item label="地址" prop="address">
             <el-input v-model="form.address" placeholder="请输入地址" />
           </el-form-item>
-          <el-form-item label="城市" prop="city">
-            <el-input v-model="form.city" placeholder="请输入城市" />
+          <el-form-item label="事件" prop="city">
+            <el-input v-model="form.city" placeholder="请输入事件" />
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="checklon">查 询</el-button>
+          <el-button type="primary" @click="checklon(form)" :disabled="!this.form.address&&!(this.form.longitude&&this.form.latitude)">查 询</el-button>
           <el-button type="primary" @click="submitForm" :disabled="isFormInvalid">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
@@ -146,7 +146,7 @@
   </template>
 
   <script>
-  import { listRealtime, getRealtime, delRealtime, addRealtime, updateRealtime } from "@/api/map/realtime";
+  import { listRealtime, getRealtime, delRealtime, addRealtime, updateRealtime, forAddress} from "@/api/map/realtime";
 
   export default {
     name: "Realtime",
@@ -192,7 +192,7 @@
     computed: {
       isFormInvalid() {
         return !this.form.address || !this.form.city;
-      }
+      },
     },
     methods: {
       /** 查询check列表 */
@@ -274,18 +274,22 @@
           }
         });
       },
-      getFormData() {
-        return this.form.address;
-      },
-      checklon(){
-        const da = this.getFormData();
-        this.form.longitude="123.45465465";
-        // this.queryParams.longitude="123.45465465";
-        // getlnglat(da).then(response =>{
-        //   this.queryParams.latitude=response.latitude;
-        //   this.queryParams.longitude=response.longitude;
-        //   }
-        // );
+
+      checklon(form){
+        console.log(form.address);
+        if(form.address==null||form.address==""){
+          let point = new BMap.Point(form.longitude, form.latitude);
+          var geoc = new BMap.Geocoder();
+          geoc.getLocation(point, result => {
+            this.form.address=result.address;
+            console.log(result.address)
+          });
+          return;
+        }
+        forAddress(form.address).then(response => {
+          this.form.longitude = response.data.lng;
+          this.form.latitude = response.data.lat;
+        });
       },
 
       /** 删除按钮操作 */
