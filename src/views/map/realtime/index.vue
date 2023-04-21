@@ -197,7 +197,7 @@ export default {
     },
 
     cancel() {
-      this.open = false;
+      this.dialogVisible = false;
       this.reset();
     },
     // 表单重置
